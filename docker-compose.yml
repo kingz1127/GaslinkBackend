@@ -1,0 +1,44 @@
+version: '3.9'
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: jdbc:postgresql://db:5432/gaslink
+      DATABASE_USER: gaslink
+      DATABASE_PASS: gaslink
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: bXktc3VwZXItc2VjcmV0LWtleS1mb3ItZ2FzbGluay1hcGktam9vbC0yMDI1
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: gaslink
+      POSTGRES_USER: gaslink
+      POSTGRES_PASSWORD: gaslink
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "gaslink"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+volumes:
+  pgdata:

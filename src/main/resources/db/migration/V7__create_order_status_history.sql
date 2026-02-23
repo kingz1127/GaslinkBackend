@@ -1,0 +1,8 @@
+CREATE TABLE order_status_history (
+    id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id   UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    status     VARCHAR(30) NOT NULL,
+    changed_by UUID REFERENCES users(id),
+    note       TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
