@@ -9,9 +9,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
-@RestController @RequestMapping("/api/v1/orders") @RequiredArgsConstructor
+@RestController @RequestMapping("/api/v1/orders")
+//@RequiredArgsConstructor
 public class OrderController {
     private final OrderService orderService;
+
+    public OrderController(OrderService orderService) {
+        this.orderService = orderService;
+    }
 
     @PostMapping
     @PreAuthorize("hasRole('CUSTOMER')")

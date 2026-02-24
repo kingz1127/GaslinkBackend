@@ -10,9 +10,14 @@ import java.time.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Service @RequiredArgsConstructor
+@Service
+//@RequiredArgsConstructor
 public class SubscriptionService {
     private final SubscriptionRepository subscriptionRepository;
+
+    public SubscriptionService(SubscriptionRepository subscriptionRepository) {
+        this.subscriptionRepository = subscriptionRepository;
+    }
 
     @Transactional
     public SubscriptionDto subscribe(UUID vendorId, CreateSubscriptionRequest req) {

@@ -5,4 +5,12 @@ import lombok.Data;
 @Data
 public class VendorAccountActionRequest {
     @NotBlank private String reason;
+
+    public @NotBlank String getReason() {
+        return reason;
+    }
+
+    public void setReason(@NotBlank String reason) {
+        this.reason = reason;
+    }
 }

@@ -9,9 +9,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
-@RestController @RequestMapping("/api/v1/inventory") @RequiredArgsConstructor
+@RestController @RequestMapping("/api/v1/inventory")
+//@RequiredArgsConstructor
 public class InventoryController {
     private final InventoryService inventoryService;
+
+    public InventoryController(InventoryService inventoryService) {
+        this.inventoryService = inventoryService;
+    }
 
     @GetMapping
     @PreAuthorize("hasRole('VENDOR')")

@@ -7,9 +7,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     public UserProfileDto getProfile(UUID userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -33,7 +37,14 @@ public class UserService {
     }
 
     private UserProfileDto toDto(User u) {
-        return UserProfileDto.builder().id(u.getId()).fullName(u.getFullName())
-                .phone(u.getPhone()).email(u.getEmail()).role(u.getRole()).avatarUrl(u.getAvatarUrl()).build();
+        // REPLACED .builder() with manual object creation
+        return new UserProfileDto(
+                u.getId(),
+                u.getFullName(),
+                u.getPhone(),
+                u.getEmail(),
+                u.getRole(),
+                u.getAvatarUrl()
+        );
     }
 }

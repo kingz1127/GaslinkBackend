@@ -12,28 +12,48 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
-@Service @RequiredArgsConstructor
+@Service
+// REMOVED @RequiredArgsConstructor
 public class AdminService {
     private final UserRepository userRepository;
     private final VendorRepository vendorRepository;
     private final OrderRepository orderRepository;
     private final UserService userService;
 
+    // MANUAL CONSTRUCTOR
+    public AdminService(UserRepository userRepository, VendorRepository vendorRepository,
+                        OrderRepository orderRepository, UserService userService) {
+        this.userRepository = userRepository;
+        this.vendorRepository = vendorRepository;
+        this.orderRepository = orderRepository;
+        this.userService = userService;
+    }
+
     public DashboardStatsDto getDashboardStats() {
         long totalUsers = userRepository.count();
         long activeVendors = vendorRepository.findByAccountStatus(VendorAccountStatus.ENABLED).size();
         Instant startOfDay = Instant.now().truncatedTo(ChronoUnit.DAYS);
+
         long ordersToday = orderRepository.findAll().stream()
                 .filter(o -> o.getCreatedAt() != null && o.getCreatedAt().isAfter(startOfDay)).count();
+
         BigDecimal revenueToday = orderRepository.findAll().stream()
                 .filter(o -> o.getCreatedAt() != null && o.getCreatedAt().isAfter(startOfDay)
-                          && o.getPaymentStatus() == PaymentStatus.PAID)
+                        && o.getPaymentStatus() == PaymentStatus.PAID)
                 .map(o -> o.getTotal() != null ? o.getTotal() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+
         long pendingVerifications = vendorRepository.findByVerificationStatus(VerificationStatus.PENDING).size();
-        return DashboardStatsDto.builder().totalUsers(totalUsers).activeVendors(activeVendors)
-                .ordersToday(ordersToday).revenueToday(revenueToday)
-                .pendingVerifications(pendingVerifications).openComplaints(0).build();
+
+        // REPLACED DashboardStatsDto.builder() with manual 'new' call
+        return new DashboardStatsDto(
+                totalUsers,
+                activeVendors,
+                ordersToday,
+                revenueToday,
+                pendingVerifications,
+                0
+        );
     }
 
     public void performUserAction(AdminUserActionRequest req) {

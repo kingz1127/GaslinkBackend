@@ -1,32 +1,73 @@
 package com.gaslink.api.modules.order;
-import com.gaslink.api.shared.audit.AuditableEntity;
+
 import com.gaslink.api.shared.enums.*;
 import jakarta.persistence.*;
-import lombok.*;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
-@Entity @Table(name = "orders")
-@Data @Builder @NoArgsConstructor @AllArgsConstructor
-@EqualsAndHashCode(callSuper = false)
-public class Order extends AuditableEntity {
-    @Id @GeneratedValue @Column(columnDefinition = "uuid") private UUID id;
-    @Column(unique = true, nullable = false) private String reference;
-    @Column(name = "customer_id") private UUID customerId;
-    @Column(name = "vendor_id") private UUID vendorId;
-    @Enumerated(EnumType.STRING) @Column(name = "service_type") private ServiceType serviceType;
-    @Enumerated(EnumType.STRING) @Column(name = "status") private OrderStatus status = OrderStatus.PENDING;
-    @Column(name = "cylinder_size_kg") private Double cylinderSizeKg;
-    private int qty;
-    @Column(name = "delivery_lat") private Double deliveryLat;
-    @Column(name = "delivery_lng") private Double deliveryLng;
-    @Column(name = "distance_km") private Double distanceKm;
-    @Column(precision = 12, scale = 2) private BigDecimal subtotal;
-    @Column(name = "delivery_fee", precision = 12, scale = 2) private BigDecimal deliveryFee;
-    @Column(name = "platform_fee", precision = 12, scale = 2) private BigDecimal platformFee;
-    @Column(precision = 12, scale = 2) private BigDecimal total;
-    @Enumerated(EnumType.STRING) @Column(name = "payment_method") private PaymentMethod paymentMethod;
-    @Enumerated(EnumType.STRING) @Column(name = "payment_status") private PaymentStatus paymentStatus = PaymentStatus.UNPAID;
-    @Column(name = "scheduled_at") private Instant scheduledAt;
+@Entity
+@Table(name = "orders")
+public class Order {
+    @Id @GeneratedValue(strategy = GenerationType.UUID) private UUID id;
+    private String reference;
+    private UUID customerId;
+    private UUID vendorId;
+    @Enumerated(EnumType.STRING) private ServiceType serviceType;
+    @Enumerated(EnumType.STRING) private OrderStatus status = OrderStatus.PENDING;
+    private Double cylinderSizeKg;
+    private Integer qty;
+    private Double deliveryLat;
+    private Double deliveryLng;
+    private Double distanceKm;
+    private BigDecimal subtotal;
+    private BigDecimal deliveryFee;
+    private BigDecimal platformFee;
+    private BigDecimal total;
+    @Enumerated(EnumType.STRING) private PaymentMethod paymentMethod;
+    @Enumerated(EnumType.STRING) private PaymentStatus paymentStatus = PaymentStatus.PENDING;
+    private Instant scheduledAt;
+    private Instant createdAt = Instant.now();
+
+    public Order() {} // Manual Constructor
+
+    // MANUAL GETTERS AND SETTERS (Generate these using Alt+Insert)
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
+    public String getReference() { return reference; }
+    public void setReference(String reference) { this.reference = reference; }
+    public UUID getCustomerId() { return customerId; }
+    public void setCustomerId(UUID customerId) { this.customerId = customerId; }
+    public UUID getVendorId() { return vendorId; }
+    public void setVendorId(UUID vendorId) { this.vendorId = vendorId; }
+    public ServiceType getServiceType() { return serviceType; }
+    public void setServiceType(ServiceType serviceType) { this.serviceType = serviceType; }
+    public OrderStatus getStatus() { return status; }
+    public void setStatus(OrderStatus status) { this.status = status; }
+    public Double getCylinderSizeKg() { return cylinderSizeKg; }
+    public void setCylinderSizeKg(Double cylinderSizeKg) { this.cylinderSizeKg = cylinderSizeKg; }
+    public Integer getQty() { return qty; }
+    public void setQty(Integer qty) { this.qty = qty; }
+    public Double getDeliveryLat() { return deliveryLat; }
+    public void setDeliveryLat(Double deliveryLat) { this.deliveryLat = deliveryLat; }
+    public Double getDeliveryLng() { return deliveryLng; }
+    public void setDeliveryLng(Double deliveryLng) { this.deliveryLng = deliveryLng; }
+    public Double getDistanceKm() { return distanceKm; }
+    public void setDistanceKm(Double distanceKm) { this.distanceKm = distanceKm; }
+    public BigDecimal getSubtotal() { return subtotal; }
+    public void setSubtotal(BigDecimal subtotal) { this.subtotal = subtotal; }
+    public BigDecimal getDeliveryFee() { return deliveryFee; }
+    public void setDeliveryFee(BigDecimal deliveryFee) { this.deliveryFee = deliveryFee; }
+    public BigDecimal getPlatformFee() { return platformFee; }
+    public void setPlatformFee(BigDecimal platformFee) { this.platformFee = platformFee; }
+    public BigDecimal getTotal() { return total; }
+    public void setTotal(BigDecimal total) { this.total = total; }
+    public PaymentMethod getPaymentMethod() { return paymentMethod; }
+    public void setPaymentMethod(PaymentMethod paymentMethod) { this.paymentMethod = paymentMethod; }
+    public PaymentStatus getPaymentStatus() { return paymentStatus; }
+    public void setPaymentStatus(PaymentStatus paymentStatus) { this.paymentStatus = paymentStatus; }
+    public Instant getScheduledAt() { return scheduledAt; }
+    public void setScheduledAt(Instant scheduledAt) { this.scheduledAt = scheduledAt; }
+    public Instant getCreatedAt() { return createdAt; }
+    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 }

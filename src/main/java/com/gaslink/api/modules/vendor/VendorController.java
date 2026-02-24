@@ -9,9 +9,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
-@RestController @RequestMapping("/api/v1/vendors") @RequiredArgsConstructor
+@RestController @RequestMapping("/api/v1/vendors")
+//@RequiredArgsConstructor
 public class VendorController {
     private final VendorService vendorService;
+
+    public VendorController(VendorService vendorService) {
+        this.vendorService = vendorService;
+    }
 
     @PostMapping("/register")
     @PreAuthorize("hasAnyRole('CUSTOMER','VENDOR')")

@@ -6,9 +6,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
-@RestController @RequestMapping("/api/v1/messages") @RequiredArgsConstructor
+@RestController @RequestMapping("/api/v1/messages")
+//@RequiredArgsConstructor
 public class MessageController {
     private final MessageService messageService;
+
+    public MessageController(MessageService messageService) {
+        this.messageService = messageService;
+    }
 
     @GetMapping("/{orderId}")
     public ResponseEntity<ApiResponse<List<MessageDto>>> getHistory(@PathVariable UUID orderId) {

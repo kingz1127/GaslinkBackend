@@ -11,10 +11,16 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Service @RequiredArgsConstructor
+@Service
+//@RequiredArgsConstructor
 public class VendorService {
     private final VendorRepository vendorRepository;
     private final UserRepository userRepository;
+
+    public VendorService(VendorRepository vendorRepository, UserRepository userRepository) {
+        this.vendorRepository = vendorRepository;
+        this.userRepository = userRepository;
+    }
 
     @Transactional
     public VendorProfileDto register(UUID userId, VendorRegistrationRequest req) {

@@ -9,9 +9,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
-@RestController @RequestMapping("/api/v1/reviews") @RequiredArgsConstructor
+@RestController @RequestMapping("/api/v1/reviews")
+//@RequiredArgsConstructor
 public class ReviewController {
     private final ReviewService reviewService;
+
+    public ReviewController(ReviewService reviewService) {
+        this.reviewService = reviewService;
+    }
 
     @PostMapping
     @PreAuthorize("hasRole('CUSTOMER')")

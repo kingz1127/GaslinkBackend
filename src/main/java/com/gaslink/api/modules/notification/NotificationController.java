@@ -7,9 +7,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
-@RestController @RequestMapping("/api/v1/notifications") @RequiredArgsConstructor
+@RestController @RequestMapping("/api/v1/notifications")
+//@RequiredArgsConstructor
 public class NotificationController {
     private final NotificationService notificationService;
+
+    public NotificationController(NotificationService notificationService) {
+        this.notificationService = notificationService;
+    }
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<NotificationDto>>> getAll(Authentication auth) {

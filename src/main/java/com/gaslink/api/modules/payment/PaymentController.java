@@ -8,9 +8,14 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
-@RestController @RequestMapping("/api/v1/payments") @RequiredArgsConstructor
+@RestController @RequestMapping("/api/v1/payments")
+//@RequiredArgsConstructor
 public class PaymentController {
     private final PaymentService paymentService;
+
+    public PaymentController(PaymentService paymentService) {
+        this.paymentService = paymentService;
+    }
 
     @PostMapping("/initiate")
     public ResponseEntity<ApiResponse<InitiatePaymentResponse>> initiate(@Valid @RequestBody InitiatePaymentRequest req) {

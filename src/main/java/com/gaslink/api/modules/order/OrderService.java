@@ -1,18 +1,19 @@
 package com.gaslink.api.modules.order;
+
 import com.gaslink.api.modules.inventory.*;
 import com.gaslink.api.modules.order.dto.*;
 import com.gaslink.api.modules.vendor.*;
 import com.gaslink.api.shared.enums.*;
 import com.gaslink.api.shared.exception.*;
 import com.gaslink.api.shared.util.*;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Service @RequiredArgsConstructor
+@Service
 public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderStatusHistoryRepository historyRepository;
@@ -21,30 +22,52 @@ public class OrderService {
     private final OrderReferenceGenerator referenceGenerator;
     private final PricingEngine pricingEngine;
 
+    public OrderService(OrderRepository orderRepository, OrderStatusHistoryRepository historyRepository,
+                        VendorRepository vendorRepository, InventoryRepository inventoryRepository,
+                        OrderReferenceGenerator referenceGenerator, PricingEngine pricingEngine) {
+        this.orderRepository = orderRepository;
+        this.historyRepository = historyRepository;
+        this.vendorRepository = vendorRepository;
+        this.inventoryRepository = inventoryRepository;
+        this.referenceGenerator = referenceGenerator;
+        this.pricingEngine = pricingEngine;
+    }
+
     @Transactional
     public OrderDto createOrder(UUID customerId, CreateOrderRequest req) {
         Vendor vendor = vendorRepository.findById(req.getVendorId())
                 .orElseThrow(() -> new ResourceNotFoundException("Vendor not found"));
+
         if (vendor.getAccountStatus() == VendorAccountStatus.DISABLED)
             throw new BusinessRuleException("This vendor is currently unavailable");
         if (!vendor.isOpen()) throw new BusinessRuleException("Vendor is currently closed");
 
         CylinderInventory inv = inventoryRepository.findByVendorIdAndSizeKg(vendor.getId(), req.getCylinderSizeKg())
                 .orElseThrow(() -> new ResourceNotFoundException("Cylinder size not available from this vendor"));
+
         if (inv.getAvailableQty() < req.getQty()) throw new BusinessRuleException("Insufficient stock");
 
         double dist = GeoUtils.haversineDistance(vendor.getLat(), vendor.getLng(), req.getDeliveryLat(), req.getDeliveryLng());
         BigDecimal unitPrice = getPrice(inv, req.getServiceType());
         PricingEngine.PricingBreakdown pricing = pricingEngine.calculate(unitPrice, req.getQty(), dist, req.getServiceType());
 
-        Order order = Order.builder()
-                .reference(referenceGenerator.generate())
-                .customerId(customerId).vendorId(vendor.getId())
-                .serviceType(req.getServiceType()).cylinderSizeKg(req.getCylinderSizeKg())
-                .qty(req.getQty()).deliveryLat(req.getDeliveryLat()).deliveryLng(req.getDeliveryLng())
-                .distanceKm(dist).subtotal(pricing.subtotal()).deliveryFee(pricing.deliveryFee())
-                .platformFee(pricing.platformFee()).total(pricing.total())
-                .paymentMethod(req.getPaymentMethod()).scheduledAt(req.getScheduledAt()).build();
+        Order order = new Order();
+        order.setReference(referenceGenerator.generate());
+        order.setCustomerId(customerId);
+        order.setVendorId(vendor.getId());
+        order.setServiceType(req.getServiceType());
+        order.setCylinderSizeKg(req.getCylinderSizeKg());
+        order.setQty(req.getQty());
+        order.setDeliveryLat(req.getDeliveryLat());
+        order.setDeliveryLng(req.getDeliveryLng());
+        order.setDistanceKm(dist);
+        order.setSubtotal(pricing.getSubtotal());
+        order.setDeliveryFee(pricing.getDeliveryFee());
+        order.setPlatformFee(pricing.getPlatformFee());
+        order.setTotal(pricing.getTotal());
+        order.setPaymentMethod(req.getPaymentMethod());
+        order.setScheduledAt(req.getScheduledAt());
+
         order = orderRepository.save(order);
 
         inv.setAvailableQty(inv.getAvailableQty() - req.getQty());
@@ -80,11 +103,22 @@ public class OrderService {
         return toDtoWithHistory(o);
     }
 
+    // ADDED THIS METHOD (This fixes the error in OrderController)
     @Transactional
     public OrderDto cancelOrder(UUID orderId, UUID requesterId) {
-        Order o = orderRepository.findById(orderId).orElseThrow(() -> new ResourceNotFoundException("Order not found"));
-        if (!o.getCustomerId().equals(requesterId)) throw new ForbiddenException("Access denied");
-        if (o.getStatus() != OrderStatus.PENDING) throw new BusinessRuleException("Only pending orders can be cancelled");
+        Order o = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        // Safety check: ensure only the customer who placed the order can cancel it
+        if (!o.getCustomerId().equals(requesterId)) {
+            throw new ForbiddenException("Access denied");
+        }
+
+        // Logic check: only pending orders can be cancelled
+        if (o.getStatus() != OrderStatus.PENDING) {
+            throw new BusinessRuleException("Only pending orders can be cancelled");
+        }
+
         o.setStatus(OrderStatus.CANCELLED);
         orderRepository.save(o);
         saveHistory(o.getId(), OrderStatus.CANCELLED, requesterId, "Cancelled by customer");
@@ -101,34 +135,37 @@ public class OrderService {
     }
 
     private void saveHistory(UUID orderId, OrderStatus status, UUID changedBy, String note) {
-        historyRepository.save(OrderStatusHistory.builder()
-                .orderId(orderId).status(status).changedBy(changedBy).note(note).build());
+        OrderStatusHistory history = new OrderStatusHistory();
+        history.setOrderId(orderId);
+        history.setStatus(status);
+        history.setChangedBy(changedBy);
+        history.setNote(note);
+        historyRepository.save(history);
     }
 
     private OrderDto toDtoWithHistory(Order o) {
         OrderDto dto = toDto(o);
-        dto.setHistory(historyRepository.findByOrderIdOrderByCreatedAtAsc(o.getId()).stream()
-                .map(h -> StatusHistoryDto.builder().status(h.getStatus()).changedBy(h.getChangedBy())
-                        .note(h.getNote()).createdAt(h.getCreatedAt()).build()).collect(Collectors.toList()));
+        List<StatusHistoryDto> history = historyRepository.findByOrderIdOrderByCreatedAtAsc(o.getId()).stream()
+                .map(h -> new StatusHistoryDto(h.getStatus(), h.getChangedBy(), h.getNote(), h.getCreatedAt()))
+                .collect(Collectors.toList());
+        dto.setHistory(history);
         return dto;
     }
 
     private OrderDto toDto(Order o) {
-        return OrderDto.builder().id(o.getId()).reference(o.getReference())
-                .customerId(o.getCustomerId()).vendorId(o.getVendorId())
-                .serviceType(o.getServiceType()).status(o.getStatus())
-                .cylinderSizeKg(o.getCylinderSizeKg()).qty(o.getQty())
-                .deliveryLat(o.getDeliveryLat()).deliveryLng(o.getDeliveryLng())
-                .distanceKm(o.getDistanceKm()).subtotal(o.getSubtotal())
-                .deliveryFee(o.getDeliveryFee()).platformFee(o.getPlatformFee()).total(o.getTotal())
-                .paymentMethod(o.getPaymentMethod()).paymentStatus(o.getPaymentStatus())
-                .scheduledAt(o.getScheduledAt()).createdAt(o.getCreatedAt()).build();
+        return new OrderDto(
+                o.getId(), o.getReference(), o.getCustomerId(), o.getVendorId(),
+                o.getServiceType(), o.getStatus(), o.getCylinderSizeKg(), o.getQty(),
+                o.getDeliveryLat(), o.getDeliveryLng(), o.getDistanceKm(), o.getSubtotal(),
+                o.getDeliveryFee(), o.getPlatformFee(), o.getTotal(), o.getPaymentMethod(),
+                o.getPaymentStatus(), o.getScheduledAt(), o.getCreatedAt()
+        );
     }
 
     private OrderSummaryDto toSummary(Order o) {
-        return OrderSummaryDto.builder().id(o.getId()).reference(o.getReference())
-                .status(o.getStatus()).serviceType(o.getServiceType())
-                .cylinderSizeKg(o.getCylinderSizeKg()).qty(o.getQty())
-                .total(o.getTotal()).createdAt(o.getCreatedAt()).build();
+        return new OrderSummaryDto(
+                o.getId(), o.getReference(), o.getStatus(), o.getServiceType(),
+                o.getCylinderSizeKg(), o.getQty(), o.getTotal(), o.getCreatedAt()
+        );
     }
 }

@@ -1,4 +1,5 @@
 package com.gaslink.api.shared.util;
+
 import com.gaslink.api.shared.enums.ServiceType;
 import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
@@ -13,8 +14,21 @@ public class PricingEngine {
         BigDecimal deliveryFee  = DELIVERY_FEE_PER_KM.multiply(BigDecimal.valueOf(distanceKm));
         BigDecimal platformFee  = subtotal.multiply(PLATFORM_FEE_RATE);
         BigDecimal total        = subtotal.add(deliveryFee).add(platformFee);
+
         return new PricingBreakdown(subtotal, deliveryFee, platformFee, total);
     }
 
-    public record PricingBreakdown(BigDecimal subtotal, BigDecimal deliveryFee, BigDecimal platformFee, BigDecimal total) {}
+    // Updated Record with explicit Getters to match OrderService requirements
+    public record PricingBreakdown(
+            BigDecimal subtotal,
+            BigDecimal deliveryFee,
+            BigDecimal platformFee,
+            BigDecimal total
+    ) {
+        // These allow you to use pricing.getSubtotal() in your Service
+        public BigDecimal getSubtotal() { return subtotal; }
+        public BigDecimal getDeliveryFee() { return deliveryFee; }
+        public BigDecimal getPlatformFee() { return platformFee; }
+        public BigDecimal getTotal() { return total; }
+    }
 }

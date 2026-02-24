@@ -6,4 +6,20 @@ import lombok.Data;
 public class UpdateVendorStatusRequest {
     private VerificationStatus verificationStatus;
     private String reason;
+
+    public VerificationStatus getVerificationStatus() {
+        return verificationStatus;
+    }
+
+    public void setVerificationStatus(VerificationStatus verificationStatus) {
+        this.verificationStatus = verificationStatus;
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
 }

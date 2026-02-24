@@ -8,9 +8,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Service @RequiredArgsConstructor
+@Service
+//@RequiredArgsConstructor
 public class AddressService {
     private final AddressRepository addressRepository;
+
+    public AddressService(AddressRepository addressRepository) {
+        this.addressRepository = addressRepository;
+    }
 
     public List<AddressDto> getAddresses(UUID userId) {
         return addressRepository.findByUserId(userId).stream().map(this::toDto).collect(Collectors.toList());
@@ -19,8 +24,18 @@ public class AddressService {
     @Transactional
     public AddressDto createAddress(UUID userId, CreateAddressRequest req) {
         if (req.isDefault()) addressRepository.clearDefaultForUser(userId);
-        Address a = Address.builder().userId(userId).label(req.getLabel()).addressLine(req.getAddressLine())
-                .city(req.getCity()).state(req.getState()).lat(req.getLat()).lng(req.getLng()).isDefault(req.isDefault()).build();
+
+        // REPLACED Address.builder() with manual creation
+        Address a = new Address();
+        a.setUserId(userId);
+        a.setLabel(req.getLabel());
+        a.setAddressLine(req.getAddressLine());
+        a.setCity(req.getCity());
+        a.setState(req.getState());
+        a.setLat(req.getLat());
+        a.setLng(req.getLng());
+        a.setDefault(req.isDefault());
+
         return toDto(addressRepository.save(a));
     }
 
@@ -52,7 +67,16 @@ public class AddressService {
     }
 
     private AddressDto toDto(Address a) {
-        return AddressDto.builder().id(a.getId()).label(a.getLabel()).addressLine(a.getAddressLine())
-                .city(a.getCity()).state(a.getState()).lat(a.getLat()).lng(a.getLng()).isDefault(a.isDefault()).build();
+        // REPLACED AddressDto.builder() with manual creation
+        AddressDto dto = new AddressDto();
+        dto.setId(a.getId());
+        dto.setLabel(a.getLabel());
+        dto.setAddressLine(a.getAddressLine());
+        dto.setCity(a.getCity());
+        dto.setState(a.getState());
+        dto.setLat(a.getLat());
+        dto.setLng(a.getLng());
+        dto.setDefault(a.isDefault());
+        return dto;
     }
 }

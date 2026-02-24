@@ -1,16 +1,34 @@
 package com.gaslink.api.modules.message;
-import com.gaslink.api.shared.audit.AuditableEntity;
+
 import jakarta.persistence.*;
-import lombok.*;
+import java.time.Instant;
 import java.util.UUID;
 
-@Entity @Table(name = "messages")
-@Data @Builder @NoArgsConstructor @AllArgsConstructor
-@EqualsAndHashCode(callSuper = false)
-public class Message extends AuditableEntity {
-    @Id @GeneratedValue @Column(columnDefinition = "uuid") private UUID id;
-    @Column(name = "order_id", nullable = false) private UUID orderId;
-    @Column(name = "sender_id") private UUID senderId;
-    @Column(nullable = false) private String content;
-    @Column(name = "is_read") private boolean isRead = false;
+@Entity
+@Table(name = "messages")
+public class Message {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    private UUID orderId;
+    private UUID senderId;
+    private String content;
+    private Instant sentAt;
+
+    public Message() {} // Manual constructor
+
+    // MANUAL GETTERS
+    public UUID getId() { return id; }
+    public UUID getOrderId() { return orderId; }
+    public UUID getSenderId() { return senderId; }
+    public String getContent() { return content; }
+    public Instant getSentAt() { return sentAt; }
+
+    // MANUAL SETTERS
+    public void setId(UUID id) { this.id = id; }
+    public void setOrderId(UUID orderId) { this.orderId = orderId; }
+    public void setSenderId(UUID senderId) { this.senderId = senderId; }
+    public void setContent(String content) { this.content = content; }
+    public void setSentAt(Instant sentAt) { this.sentAt = sentAt; }
 }

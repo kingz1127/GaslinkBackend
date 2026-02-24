@@ -10,10 +10,18 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
-@Component @RequiredArgsConstructor @Slf4j
+import static reactor.netty.http.HttpConnectionLiveness.log;
+
+@Component
+//@RequiredArgsConstructor @Slf4j
 public class OrderTimeoutScheduler {
     private final OrderRepository orderRepository;
     private final OrderStatusHistoryRepository historyRepository;
+
+    public OrderTimeoutScheduler(OrderRepository orderRepository, OrderStatusHistoryRepository historyRepository) {
+        this.orderRepository = orderRepository;
+        this.historyRepository = historyRepository;
+    }
 
     @Scheduled(fixedRate = 60000)
     @Transactional

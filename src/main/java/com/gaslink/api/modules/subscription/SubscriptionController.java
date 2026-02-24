@@ -9,9 +9,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
-@RestController @RequestMapping("/api/v1/subscriptions") @RequiredArgsConstructor
+@RestController @RequestMapping("/api/v1/subscriptions")
+//@RequiredArgsConstructor
 public class SubscriptionController {
     private final SubscriptionService subscriptionService;
+
+    public SubscriptionController(SubscriptionService subscriptionService) {
+        this.subscriptionService = subscriptionService;
+    }
 
     @GetMapping("/me")
     @PreAuthorize("hasRole('VENDOR')")

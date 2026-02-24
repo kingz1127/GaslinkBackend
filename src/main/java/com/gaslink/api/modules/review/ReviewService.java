@@ -12,11 +12,18 @@ import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Service @RequiredArgsConstructor
+@Service
+//@RequiredArgsConstructor
 public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final OrderRepository orderRepository;
     private final VendorRepository vendorRepository;
+
+    public ReviewService(ReviewRepository reviewRepository, OrderRepository orderRepository, VendorRepository vendorRepository) {
+        this.reviewRepository = reviewRepository;
+        this.orderRepository = orderRepository;
+        this.vendorRepository = vendorRepository;
+    }
 
     @Transactional
     public ReviewDto createReview(UUID customerId, CreateReviewRequest req) {

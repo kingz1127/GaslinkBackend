@@ -6,9 +6,14 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Controller;
 import java.util.UUID;
 
-@Controller @RequiredArgsConstructor
+@Controller
+//@RequiredArgsConstructor
 public class MessageWebSocketController {
     private final MessageService messageService;
+
+    public MessageWebSocketController(MessageService messageService) {
+        this.messageService = messageService;
+    }
 
     @MessageMapping("/chat.send")
     public void send(@Payload SendMessageRequest req, SimpMessageHeaderAccessor headerAccessor) {
